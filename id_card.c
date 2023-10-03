@@ -24,10 +24,10 @@
 string load_data();
 
 // Get the desired data from the file
-string data = load_data();
-string name = strtok(data, "\n");
-string number = strtok(NULL, "\n");
-string email = strtok(NULL, "\n");
+#define data load_data()
+#define name strtok(data, "\n")
+#define number strtok(NULL, "\n")
+#define email strtok(NULL, "\n")
 
 
 // Get the name
