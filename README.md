@@ -1,3 +1,5 @@
+# Note: This is not ready for use! It needs furter testing!
+
 # Prerequisite
 You don't need to be an engineer in embedded systems to understand this article.
 But here is a short list of the requirements to follow this tutorial:
