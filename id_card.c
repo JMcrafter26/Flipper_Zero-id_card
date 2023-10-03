@@ -5,11 +5,36 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+// To do: Get the name, number and email from a file called "apps_data.txt"
+
+// include the file string.h to use the function strcpy
+#include <storage/storage.h>
+#include <dolphin/dolphin.h>
+
+
+
 #include "id_card_icons.h"
 
-#define NAME "John DOE"
-#define NUMBER "06 12 34 56 78"
-#define EMAIL "john.doe@example.com"
+// Old code
+// #define NAME "John DOE"
+// #define NUMBER "06 12 34 56 78"
+// #define EMAIL "john.doe@example.com"
+
+// load_data() function
+string load_data();
+
+// Get the desired data from the file
+string data = load_data();
+string name = strtok(data, "\n");
+string number = strtok(NULL, "\n");
+string email = strtok(NULL, "\n");
+
+
+// Get the name
+#define NAME name
+#define NUMBER number
+#define EMAIL email
+
 
 #define TAG "Id Card"
 
@@ -113,4 +138,33 @@ int32_t id_card_app(void* p) {
     view_port_free(app.view_port);
 
     return 0;
+}
+
+string bool load_data() {
+    Storage* storage = furi_record_open("storage");
+
+        File* file = storage_file_alloc(storage);
+    uint16_t bytes_readed = 0;
+    if(storage_file_open(file, "apps_data.txt", StorageFileModeRead) == StorageStatusOk) {
+        char buffer[256];
+        storage_file_read(file, buffer, 256, &bytes_readed);
+        buffer[bytes_readed] = '\0';
+        storage_file_close(file);
+        storage_file_free(file);
+        furi_record_close("storage");
+        return buffer;
+    }
+    else {
+        // if the file doesn't exist, create it
+        File* file = storage_file_alloc(storage);
+        if(storage_file_open(file, "apps_data.txt", StorageFileModeWrite) == StorageStatusOk) {
+            storage_file_write(file, "John DOE\n06 12 34 56 78\njohn.doe@example.com", 256, &bytes_readed);
+            storage_file_close(file);
+            storage_file_free(file);
+            furi_record_close("storage");
+            return "John DOE\n06 12 34 56 78\njohn.doe@example.com";
+
+    }
+
+}
 }
