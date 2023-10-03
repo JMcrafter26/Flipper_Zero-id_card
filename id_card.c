@@ -151,7 +151,7 @@ string bool load_data() {
         storage_file_close(file);
         storage_file_free(file);
         furi_record_close("storage");
-        return "John DOE\n06 12 34 56 78\njohn.doe@example.com";
+        return "John DOE\n06 12 34 56 78\nno.file@example.com";
     } else {
 
         char buffer[256];
