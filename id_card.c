@@ -145,7 +145,15 @@ string bool load_data() {
 
         File* file = storage_file_alloc(storage);
     uint16_t bytes_readed = 0;
-    if(storage_file_open(file, "apps_data.txt", StorageFileModeRead) == StorageStatusOk) {
+    if(storage_file_open(file, "apps_data.txt", FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
+        // if the file does exist, create it
+        storage_file_write(file, "John DOE\n06 12 34 56 78\njohn.doe@example.com", sizeof("John DOE\n06 12 34 56 78\njohn.doe@example.com"), &bytes_readed);
+        storage_file_close(file);
+        storage_file_free(file);
+        furi_record_close("storage");
+        return "John DOE\n06 12 34 56 78\njohn.doe@example.com";
+    } else {
+
         char buffer[256];
         storage_file_read(file, buffer, 256, &bytes_readed);
         buffer[bytes_readed] = '\0';
@@ -154,17 +162,6 @@ string bool load_data() {
         furi_record_close("storage");
         return buffer;
     }
-    else {
-        // if the file doesn't exist, create it
-        File* file = storage_file_alloc(storage);
-        if(storage_file_open(file, "apps_data.txt", StorageFileModeWrite) == StorageStatusOk) {
-            storage_file_write(file, "John DOE\n06 12 34 56 78\njohn.doe@example.com", 256, &bytes_readed);
-            storage_file_close(file);
-            storage_file_free(file);
-            furi_record_close("storage");
-            return "John DOE\n06 12 34 56 78\njohn.doe@example.com";
 
-    }
 
-}
 }
