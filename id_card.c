@@ -21,7 +21,7 @@
 // #define EMAIL "john.doe@example.com"
 
 // load_data() function
-string load_data();
+// string load_data();
 
 // Get the desired data from the file
 #define data load_data()
