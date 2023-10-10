@@ -1,5 +1,5 @@
 App(
-    appid="id_card_2",
+    appid="id_card",
     name="Id Card",
     apptype=FlipperAppType.EXTERNAL,
     entry_point="id_card_app",
@@ -9,5 +9,4 @@ App(
     fap_icon_assets="images",
     fap_icon="images/icon_10x10.png",
     fap_category="Misc",
-    fap_desc="Id Card App, details of the owner, in case if the device is lost",
 )
