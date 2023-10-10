@@ -141,7 +141,7 @@ int32_t id_card_app(void* p) {
 }
 
 // load_data() function
-string load_data() {
+char load_data() {
     Storage* storage = furi_record_open("storage");
 
         File* file = storage_file_alloc(storage);
