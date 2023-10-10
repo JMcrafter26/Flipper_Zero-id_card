@@ -1,40 +1,17 @@
-#include "gui/canvas.h"
 #include <furi.h>
 #include <gui/gui.h>
 #include <input/input.h>
+
 #include <stdint.h>
 #include <stdlib.h>
-
-// To do: Get the name, number and email from a file called "apps_data.txt"
-
-// include the file string.h to use the function strcpy
-#include <storage/storage.h>
-#include <dolphin/dolphin.h>
-
-
+#include <stdio.h>
+#include <string.h>
 
 #include "id_card_icons.h"
 
-// Old code
-// #define NAME "John DOE"
-// #define NUMBER "06 12 34 56 78"
-// #define EMAIL "john.doe@example.com"
-
-// load_data() function
-// string load_data();
-
-// Get the desired data from the file
-#define data load_data()
-#define name strtok(data, "\n")
-#define number strtok(NULL, "\n")
-#define email strtok(NULL, "\n")
-
-
-// Get the name
-#define NAME name
-#define NUMBER number
-#define EMAIL email
-
+#define DEFAULT_NAME "John DOE"
+#define DEFAULT_NUMBER "06 12 34 56 78"
+#define DEFAULT_EMAIL "john.doe@example.com"
 
 #define TAG "Id Card"
 
@@ -42,10 +19,13 @@ typedef struct {
     FuriMessageQueue* input_queue;
     ViewPort* view_port;
     Gui* gui;
+    char name[256];
+    char number[256];
+    char email[256];
 } Id_card;
 
 void draw_callback(Canvas* canvas, void* context) {
-    UNUSED(context);
+    Id_card* app = (Id_card*)context;
 
     canvas_clear(canvas);
     canvas_set_color(canvas, ColorBlack);
@@ -56,7 +36,7 @@ void draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
     canvas_set_font(canvas, FontSecondary);
 
-    canvas_draw_str_aligned(canvas, 33, 5, AlignLeft, AlignTop, NAME);
+    canvas_draw_str_aligned(canvas, 33, 5, AlignLeft, AlignTop, app->name);
 
     canvas_set_color(canvas, ColorBlack);
     canvas_set_font(canvas, FontPrimary);
@@ -66,7 +46,7 @@ void draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
     canvas_set_font(canvas, FontSecondary);
 
-    canvas_draw_str_aligned(canvas, 15, 20, AlignLeft, AlignTop, NUMBER);
+    canvas_draw_str_aligned(canvas, 15, 20, AlignLeft, AlignTop, app->number);
 
     canvas_set_color(canvas, ColorBlack);
     canvas_set_font(canvas, FontPrimary);
@@ -76,7 +56,7 @@ void draw_callback(Canvas* canvas, void* context) {
     canvas_set_color(canvas, ColorBlack);
     canvas_set_font(canvas, FontSecondary);
 
-    canvas_draw_str_aligned(canvas, 5, 45, AlignLeft, AlignTop, EMAIL);
+    canvas_draw_str_aligned(canvas, 5, 45, AlignLeft, AlignTop, app->email);
 
     canvas_draw_icon(canvas, 95, 5, &I_icon_30x30);
 }
@@ -86,13 +66,14 @@ void input_callback(InputEvent* event, void* context) {
     furi_message_queue_put(app->input_queue, event, 0);
 }
 
-int32_t id_card_app(void* p) {
+int32_t id_card_main(void* p) {
     UNUSED(p);
 
     Id_card app;
 
     // Alloc
     app.view_port = view_port_alloc();
+    app.input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
 
     // Callbacks
     view_port_draw_callback_set(app.view_port, draw_callback, &app);
@@ -102,14 +83,34 @@ int32_t id_card_app(void* p) {
     app.gui = furi_record_open("gui");
     gui_add_view_port(app.gui, app.view_port, GuiLayerFullscreen);
 
+    // Read user info from file
+    FILE* file = fopen("/apps_data/id-card/info.txt", "r");
+    if (file == NULL) {
+        file = fopen("/apps_data/id-card/info.txt", "w");
+        fprintf(file, "Name: %s\nNumber: %s\nEmail: %s\n", DEFAULT_NAME, DEFAULT_NUMBER, DEFAULT_EMAIL);
+        fclose(file);
+        strcpy(app.name, DEFAULT_NAME);
+        strcpy(app.number, DEFAULT_NUMBER);
+        strcpy(app.email, DEFAULT_EMAIL);
+    } else {
+        char line[256];
+        fgets(line, sizeof(line), file);
+        sscanf(line, "Name: %[^\n]", app.name);
+        fgets(line, sizeof(line), file);
+        sscanf(line, "Number: %[^\n]", app.number);
+        fgets(line, sizeof(line), file);
+        sscanf(line, "Email: %[^\n]", app.email);
+        fclose(file);
+    }
+
     // Input handling
     InputEvent input;
-    app.input_queue = furi_message_queue_alloc(8, sizeof(InputEvent));
     uint8_t exit_loop = 0;
+
+    FURI_LOG_I(TAG, "Start the main loop.");
     while(1) {
         furi_check(
             furi_message_queue_get(app.input_queue, &input, FuriWaitForever) == FuriStatusOk);
-        FURI_LOG_D(TAG, "In the while!!!");
 
         switch(input.key) {
         case InputKeyLeft:
@@ -138,31 +139,4 @@ int32_t id_card_app(void* p) {
     view_port_free(app.view_port);
 
     return 0;
-}
-
-// load_data() function
-char load_data() {
-    Storage* storage = furi_record_open("storage");
-
-        File* file = storage_file_alloc(storage);
-    uint16_t bytes_readed = 0;
-    if(storage_file_open(file, "apps_data.txt", FSAM_WRITE, FSOM_CREATE_ALWAYS)) {
-        // if the file does exist, create it
-        storage_file_write(file, "John DOE\n06 12 34 56 78\njohn.doe@example.com", sizeof("John DOE\n06 12 34 56 78\njohn.doe@example.com"), &bytes_readed);
-        storage_file_close(file);
-        storage_file_free(file);
-        furi_record_close("storage");
-        return "John DOE\n06 12 34 56 78\nno.file@example.com";
-    } else {
-
-        char buffer[256];
-        storage_file_read(file, buffer, 256, &bytes_readed);
-        buffer[bytes_readed] = '\0';
-        storage_file_close(file);
-        storage_file_free(file);
-        furi_record_close("storage");
-        return buffer;
-    }
-
-
 }
