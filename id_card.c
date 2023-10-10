@@ -10,7 +10,7 @@
 #include "id_card_icons.h"
 
 #define DEFAULT_NAME "John DOE"
-#define DEFAULT_NUMBER "06 12 34 56 78"
+#define DEFAULT_NUMBER "01 12 34 56 78"
 #define DEFAULT_EMAIL "john.doe@example.com"
 
 #define TAG "Id Card"
